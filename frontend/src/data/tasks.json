@@ -1,0 +1,102 @@
+[
+  {
+    "serialNumber": "0001",
+    "question": {
+      "text": "What are the implications of recent NATO military exercises?",
+      "category": "Politics"
+    },
+    "annotations": 1,
+    "completed": "No",
+    "annotator": "Agus"
+  },
+  {
+    "serialNumber": "0002",
+    "question": {
+      "text": "How did the stock market react to the Federal Reserve's latest decision?",
+      "category": "Finance"
+    },
+    "annotations": 2,
+    "completed": "Yes",
+    "annotator": "Ibrahim"
+  },
+  {
+    "serialNumber": "0003",
+    "question": {
+      "text": "Is the new iPhone launch boosting Apple's market share?",
+      "category": "Technology"
+    },
+    "annotations": 0,
+    "completed": "No",
+    "annotator": "Agus"
+  },
+  {
+    "serialNumber": "0004",
+    "question": {
+      "text": "What are the climate impacts of the recent Amazon forest fires?",
+      "category": "Environment"
+    },
+    "annotations": 1,
+    "completed": "No",
+    "annotator": "Ibrahim"
+  },
+  {
+    "serialNumber": "0005",
+    "question": {
+      "text": "How is the Russia-Ukraine war evolving in 2025?",
+      "category": "World"
+    },
+    "annotations": 2,
+    "completed": "Yes",
+    "annotator": "Agus"
+  },
+  {
+    "serialNumber": "0006",
+    "question": {
+      "text": "What are the economic challenges facing small businesses in India?",
+      "category": "Economy"
+    },
+    "annotations": 0,
+    "completed": "No",
+    "annotator": "Ibrahim"
+  },
+  {
+    "serialNumber": "0007",
+    "question": {
+      "text": "How is AI being used to detect deepfakes in media?",
+      "category": "Technology"
+    },
+    "annotations": 1,
+    "completed": "No",
+    "annotator": "Agus"
+  },
+  {
+    "serialNumber": "0008",
+    "question": {
+      "text": "Why are food prices rising across Europe?",
+      "category": "Economy"
+    },
+    "annotations": 2,
+    "completed": "Yes",
+    "annotator": "Ibrahim"
+  },
+  {
+    "serialNumber": "0009",
+    "question": {
+      "text": "Is there a new variant of COVID-19 spreading in Asia?",
+      "category": "Health"
+    },
+    "annotations": 1,
+    "completed": "No",
+    "annotator": "Agus"
+  },
+  {
+    "serialNumber": "0010",
+    "question": {
+      "text": "What are the latest breakthroughs in quantum computing?",
+      "category": "Science"
+    },
+    "annotations": 0,
+    "completed": "No",
+    "annotator": "Ibrahim"
+  }
+]
