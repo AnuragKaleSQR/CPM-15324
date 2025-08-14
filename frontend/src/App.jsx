@@ -1,8 +1,6 @@
 // App.jsx
 import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
-import Tasks from './pages/Tasks';
-import Index from './pages/Index';
 import PMIndex from './pages/PMProjects';
 import ProtectedRoute from './routes/ProtectedRoute';
 //import DynamicIndexRoute from './routes/DynamicIndexRoute';

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { FaFileDownload, FaPlusCircle, FaSearch } from 'react-icons/fa';
+import { FaSearch } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import AddProject from '../components/AddProject';
 import Navbar from '../components/Navbar';
 import StatusFilter from '../components/StatusFilter';
 import tasks from '../data/tasks.json';
