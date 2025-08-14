@@ -1,9 +1,152 @@
+import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { FaSearch } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import StatusFilter from '../components/StatusFilter';
-import tasks from '../data/tasks.json';
+
+// Updated tasks data with proper structure
+const tasks = [
+  {
+    "serialNumber": "0001",
+    "productType": "TV",
+    "productName": "Samsung Neo QLED 4K TV",
+    "imageUrl": "https://images.unsplash.com/photo-1593784991095-a205069470b6?w=400&h=300&fit=crop",
+    "question": {
+      "text": "What are the key features of this TV?",
+      "category": "Electronics"
+    },
+    "annotations": 1,
+    "completed": "No",
+    "annotator": "Agus",
+    "date": "2024-01-15"
+  },
+  {
+    "serialNumber": "0002",
+    "productType": "Remote",
+    "productName": "Samsung Universal IR Remote (VG-TM1240AN)",
+    "imageUrl": "https://images.unsplash.com/photo-1558618644-fcd25c85cd64?w=400&h=300&fit=crop",
+    "question": {
+      "text": "How does this remote work with different devices?",
+      "category": "Accessories"
+    },
+    "annotations": 2,
+    "completed": "Yes",
+    "annotator": "Ibrahim",
+    "date": "2024-01-16"
+  },
+  {
+    "serialNumber": "0003",
+    "productType": "Mobile",
+    "productName": "Flagship Smartphones (varied models)",
+    "imageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop",
+    "question": {
+      "text": "What are the performance benchmarks?",
+      "category": "Mobile Devices"
+    },
+    "annotations": 0,
+    "completed": "No",
+    "annotator": "Agus",
+    "date": "2024-01-17"
+  },
+  {
+    "serialNumber": "0004",
+    "productType": "Laptop",
+    "productName": "Generic Laptop (e.g., Dell XPS-style)",
+    "imageUrl": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=300&fit=crop",
+    "question": {
+      "text": "What are the technical specifications?",
+      "category": "Computers"
+    },
+    "annotations": 1,
+    "completed": "No",
+    "annotator": "Ibrahim",
+    "date": "2024-01-18"
+  },
+  {
+    "serialNumber": "0005",
+    "productType": "TV",
+    "productName": "Samsung 55\" Crystal UHD TV",
+    "imageUrl": "https://images.unsplash.com/photo-1593784991095-a205069470b6?w=400&h=300&fit=crop",
+    "question": {
+      "text": "How is the picture quality in different lighting?",
+      "category": "Electronics"
+    },
+    "annotations": 2,
+    "completed": "Yes",
+    "annotator": "Agus",
+    "date": "2024-01-19"
+  },
+  {
+    "serialNumber": "0006",
+    "productType": "Mobile",
+    "productName": "Samsung Galaxy S25 Ultra",
+    "imageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop",
+    "question": {
+      "text": "What are the camera capabilities?",
+      "category": "Mobile Devices"
+    },
+    "annotations": 0,
+    "completed": "No",
+    "annotator": "Ibrahim",
+    "date": "2024-01-20"
+  },
+  {
+    "serialNumber": "0007",
+    "productType": "Remote",
+    "productName": "GE 4-Device Universal Remote",
+    "imageUrl": "https://images.unsplash.com/photo-1558618644-fcd25c85cd64?w=400&h=300&fit=crop",
+    "question": {
+      "text": "What is the setup process?",
+      "category": "Accessories"
+    },
+    "annotations": 1,
+    "completed": "No",
+    "annotator": "Agus",
+    "date": "2024-01-21"
+  },
+  {
+    "serialNumber": "0008",
+    "productType": "Laptop",
+    "productName": "Ultra-slim Productivity Laptop",
+    "imageUrl": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=300&fit=crop",
+    "question": {
+      "text": "How is the battery life and performance?",
+      "category": "Computers"
+    },
+    "annotations": 2,
+    "completed": "Yes",
+    "annotator": "Ibrahim",
+    "date": "2024-01-22"
+  },
+  {
+    "serialNumber": "0009",
+    "productType": "TV",
+    "productName": "Samsung 60\" Full HD Smart TV",
+    "imageUrl": "https://images.unsplash.com/photo-1593784991095-a205069470b6?w=400&h=300&fit=crop",
+    "question": {
+      "text": "What smart features are available?",
+      "category": "Electronics"
+    },
+    "annotations": 1,
+    "completed": "No",
+    "annotator": "Agus",
+    "date": "2024-01-23"
+  },
+  {
+    "serialNumber": "0010",
+    "productType": "Mobile",
+    "productName": "Next-gen Foldable Phone",
+    "imageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop",
+    "question": {
+      "text": "How durable is the folding mechanism?",
+      "category": "Mobile Devices"
+    },
+    "annotations": 0,
+    "completed": "No",
+    "annotator": "Ibrahim",
+    "date": "2024-01-24"
+  }
+];
 
 function PMQuestions() {
     const navigate = useNavigate();
@@ -11,7 +154,6 @@ function PMQuestions() {
     const [filteredTasks, setFilteredTasks] = useState(tasks);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
     const [statusFilter, setStatusFilter] = useState('All');
-    const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
 
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter((t) => t.annotations === 2).length;
@@ -19,30 +161,30 @@ function PMQuestions() {
     const completedPercentage = ((completedTasks / totalTasks) * 100).toFixed(1);
 
     useEffect(() => {
-        if (!searchTerm) {
-            setFilteredTasks(tasks);
-            return;
-        }
-        const term = searchTerm.toLowerCase();
-        const results = tasks.filter((task) => {
-            return (
-                String(task.serialNumber).includes(term) ||
-                task.question.text.toLowerCase().includes(term) ||
-                task.question.category.toLowerCase().includes(term)
-            );
-        });
-        setFilteredTasks(results);
-    }, [searchTerm]);
+        let filtered = tasks;
 
-    useEffect(() => {
-        if (statusFilter === 'All') {
-            setFilteredTasks(tasks);
-        } else if (statusFilter === 'Completed') {
-            setFilteredTasks(tasks.filter((t) => t.annotations === 2));
+        // Apply status filter first
+        if (statusFilter === 'Completed') {
+            filtered = filtered.filter((t) => t.annotations === 2);
         } else if (statusFilter === 'Partial') {
-            setFilteredTasks(tasks.filter((t) => t.annotations === 1));
+            filtered = filtered.filter((t) => t.annotations === 1);
         }
-    }, [statusFilter]);
+
+        // Then apply search filter
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filtered = filtered.filter((task) => {
+                return (
+                    String(task.serialNumber).includes(term) ||
+                    task.question.text.toLowerCase().includes(term) ||
+                    task.question.category.toLowerCase().includes(term) ||
+                    task.productName.toLowerCase().includes(term)
+                );
+            });
+        }
+
+        setFilteredTasks(filtered);
+    }, [searchTerm, statusFilter]);
 
     const requestSort = (key) => {
         let direction = 'ascending';
@@ -56,17 +198,44 @@ function PMQuestions() {
         const sortable = [...filteredTasks];
         if (sortConfig.key) {
             sortable.sort((a, b) => {
-                const aVal = sortConfig.key === 'question' ? a.question.text : a[sortConfig.key];
-                const bVal = sortConfig.key === 'question' ? b.question.text : b[sortConfig.key];
-                return sortConfig.direction === 'ascending'
-                    ? aVal.localeCompare(bVal)
-                    : bVal.localeCompare(aVal);
+                let aVal, bVal;
+                
+                if (sortConfig.key === 'question') {
+                    aVal = a.question.text;
+                    bVal = b.question.text;
+                } else if (sortConfig.key === 'category') {
+                    aVal = a.question.category;
+                    bVal = b.question.category;
+                } else {
+                    aVal = a[sortConfig.key];
+                    bVal = b[sortConfig.key];
+                }
+                
+                if (typeof aVal === 'string' && typeof bVal === 'string') {
+                    return sortConfig.direction === 'ascending'
+                        ? aVal.localeCompare(bVal)
+                        : bVal.localeCompare(aVal);
+                } else {
+                    return sortConfig.direction === 'ascending'
+                        ? aVal - bVal
+                        : bVal - aVal;
+                }
             });
         }
         return sortable;
     };
 
     const sortedTasks = getSortedTasks();
+
+    const handleAnnotatorFilter = (annotator) => {
+        if (annotator === 'All') {
+            // Reset to show all tasks, but still apply other filters
+            setFilteredTasks(tasks);
+        } else {
+            const filtered = tasks.filter((t) => t.annotator === annotator);
+            setFilteredTasks(filtered);
+        }
+    };
 
     return (
         <div className="bg-[#f5f9fc] min-h-screen">
@@ -97,14 +266,7 @@ function PMQuestions() {
                             {/* Annotator Dropdown */}
                             <select
                                 className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#00ABE4]"
-                                onChange={(e) => {
-                                    const annotator = e.target.value;
-                                    if (annotator === 'All') {
-                                        setFilteredTasks(tasks);
-                                    } else {
-                                        setFilteredTasks(tasks.filter((t) => t.annotator === annotator));
-                                    }
-                                }}
+                                onChange={(e) => handleAnnotatorFilter(e.target.value)}
                             >
                                 <option value="All">All Annotators</option>
                                 <option value="Ibrahim">Ibrahim</option>
@@ -115,7 +277,7 @@ function PMQuestions() {
                         {/* Search Bar */}
                         <div className="relative w-full md:w-64">
                             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                <FaSearch className="text-gray-400" />
+                                <Search className="text-gray-400 h-4 w-4" />
                             </div>
                             <input
                                 type="text"
@@ -132,7 +294,7 @@ function PMQuestions() {
                             <thead className="bg-gradient-to-r from-gray-800 to-[#00AB7D] text-white">
                                 <tr>
                                     <th className="px-6 py-4 text-left font-semibold">Serial</th>
-                                    <th className="px-6 py-4 text-left font-semibold">Question</th>
+                                    <th className="px-6 py-4 text-left font-semibold">Image</th>
                                     <th className="px-6 py-4 text-left font-semibold">Category</th>
                                     <th className="px-6 py-4 text-left font-semibold">Annotations</th>
                                     <th className="px-6 py-4 text-left font-semibold">Annotator</th>
@@ -148,7 +310,16 @@ function PMQuestions() {
                                         onClick={() => navigate('/response')}
                                     >
                                         <td className="px-6 py-3 text-gray-800 font-medium">{t.serialNumber}</td>
-                                        <td className="px-6 py-3">{t.question.text}</td>
+                                        <td className="px-6 py-3">
+                                            <img
+                                                src={t.imageUrl}
+                                                alt={t.productName}
+                                                className="w-16 h-16 object-cover rounded"
+                                                onError={(e) => {
+                                                    e.target.src = 'https://via.placeholder.com/64x64?text=No+Image';
+                                                }}
+                                            />
+                                        </td>
                                         <td className="px-6 py-3">{t.question.category}</td>
                                         <td className="px-6 py-3">{t.annotations}</td>
                                         <td className="px-6 py-3">{t.annotator || 'N/A'}</td>
@@ -165,13 +336,16 @@ function PMQuestions() {
                             </tbody>
                         </table>
                     </div>
+
+                    {sortedTasks.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                            No tasks found matching your criteria.
+                        </div>
+                    )}
                 </div>
             </div>
-
-           
-           
         </div>
     );
-};
+}
 
-export default PMQuestions
+export default PMQuestions;

@@ -23,7 +23,7 @@ const PMIndex = () => {
     const dummyProjects = [
         {
             id: 1,
-            name: "Sentiment Analysis",
+            name: "Rufus Image Segmentation",
             progress: "70%",
             activeVendors: 12,
             blockedVendors: 2,

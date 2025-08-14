@@ -1,12 +1,17 @@
 // App.jsx
 import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
+import Tasks from './pages/Tasks';
+import Index from './pages/Index';
 import PMIndex from './pages/PMProjects';
 import ProtectedRoute from './routes/ProtectedRoute';
 //import DynamicIndexRoute from './routes/DynamicIndexRoute';
 
 import PMQuestions from './pages/PMQuestions';
 import PMResponse from './pages/PMResponse';
+
+import ADJTasks from './pages/ADJTasks';
+import ADJResponse from './pages/ADJResponse';
 
 import { AuthProvider } from './context/AuthContext';
 
@@ -30,6 +35,27 @@ function App() {
           element={
             <ProtectedRoute>
               <Tasks />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* Adjudicator Routes */}
+
+        <Route
+          path="/review-tasks"
+          element={
+            <ProtectedRoute>
+              <ADJTasks />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/annotator-response"
+          element={
+            <ProtectedRoute>
+              <ADJResponse />
             </ProtectedRoute>
           }
         />

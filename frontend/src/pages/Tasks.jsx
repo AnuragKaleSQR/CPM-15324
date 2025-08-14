@@ -1,250 +1,616 @@
-import { useEffect, useState } from 'react';
-import { FaCheckCircle, FaTimes } from 'react-icons/fa';
-import { useNavigate, useParams } from 'react-router-dom';
-import InstructionGuide from '../components/InstructionGuide';
+import {
+  Check,
+  Contrast,
+  Eraser,
+  Eye,
+  Info,
+  Keyboard,
+  Layers,
+  Moon,
+  Move,
+  Paintbrush2,
+  Pause,
+  Play,
+  RotateCcw,
+  Settings,
+  Square,
+  Sun,
+  X,
+  ZoomIn,
+  ZoomOut
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import Navbar from '../components/Navbar';
-import QuestionsPanel from '../components/QuestionPanel';
-import SearchEngine from '../components/SearchEngine';
-import allTasks from '../data/tasks.json';
 
-// Confirmation Modal Component
-const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
-  if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-800">{title}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <FaTimes size={20} />
-          </button>
-        </div>
-        <div className="p-6 text-center">
-          <FaCheckCircle className="text-[#00ABE4] text-5xl mx-auto mb-4" />
-          <p className="text-gray-700 text-lg mb-6">{message}</p>
-        </div>
-        <div className="flex justify-end gap-3 p-6 border-t bg-gray-50 rounded-b-xl">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-6 py-2 bg-[#00ABE4] text-white rounded-lg font-semibold hover:bg-[#008ec2] transition-colors"
-          >
-            Proceed to Submit
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const Notification = ({ message, type = 'error', onClose }) => {
-  if (!message) return null;
-
-  const getNotificationStyles = () => {
-    switch (type) {
-      case 'success':
-        return 'bg-green-100 border-green-400 text-green-700';
-      case 'error':
-        return 'bg-red-100 border-red-400 text-red-700';
-      case 'info':
-        return 'bg-blue-100 border-blue-400 text-blue-700';
-      default:
-        return 'bg-red-100 border-red-400 text-red-700';
-    }
-  };
-
-  return (
-    <div className={`${getNotificationStyles()} px-4 py-3 rounded relative text-center text-sm border mb-4 flex items-center justify-between`}>
-      <span className="flex-1">{message}</span>
-      {onClose && (
-        <button onClick={onClose} className="ml-2 text-current hover:opacity-70">
-          <FaTimes size={12} />
-        </button>
-      )}
-    </div>
-  );
-};
-
-const Timer = ({ time }) => {
-  const formatTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
-  return (
-    <div className="bg-white p-3 rounded shadow text-center">
-      <div className="text-sm font-medium text-gray-600">Timer</div>
-      <div className="text-2xl font-bold text-gray-700">{formatTime(time)}</div>
-    </div>
-  );
-};
-
-const InfoPanel = ({ question, category, onShowInstructions, onPrev, onNext, disablePrev, disableNext, time }) => (
-  <div className="bg-white p-4 rounded shadow">
-    <div className="flex items-start justify-between">
-      <Timer time={time} />
-      <div className="flex-1 text-center px-4">
-        <h1 className="text-xl font-bold text-gray-800">{question}</h1>
-      </div>
-      <div className="flex flex-col items-end space-y-2">
-        <div className="bg-[#E0FFE0] px-2 py-1 rounded text-xs font-semibold text-black">Category: {category}</div>
-        <button onClick={onShowInstructions} className="text-xs font-semibold bg-[#E0FFE0] px-3 py-1 rounded-full shadow">Show Instructions</button>
-        <div className="flex space-x-1 pt-2">
-          <button onClick={onPrev} disabled={disablePrev} className="p-1 rounded-full bg-[#E9F1FA] hover:bg-[#00ABE4] hover:text-white disabled:opacity-50">
-            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-          </button>
-          <button onClick={onNext} disabled={disableNext} className="p-1 rounded-full bg-[#E9F1FA] hover:bg-[#00ABE4] hover:text-white disabled:opacity-50">
-            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const SubmitSection = ({ locked, onSubmit }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [notification, setNotification] = useState({ message: '', type: '' });
-
-  const handleSubmitClick = () => {
-    if (!locked) return;
-    setShowConfirmation(true);
-  };
-
-  const handleConfirmSubmit = async () => {
-    setShowConfirmation(false);
-    setIsSubmitting(true);
-    await new Promise(r => setTimeout(r, 2000));
-    setIsSubmitting(false);
-    setNotification({ message: '✅ Your answers have been submitted successfully!', type: 'success' });
-    setTimeout(() => setNotification({ message: '', type: '' }), 5000);
-    onSubmit();
-  };
-
-  const handleCloseConfirmation = () => setShowConfirmation(false);
-  const clearNotification = () => setNotification({ message: '', type: '' });
-
-  return (
-    <div className="bg-white p-6 rounded shadow text-center">
-      <Notification message={notification.message} type={notification.type} onClose={clearNotification} />
-      {isSubmitting ? (
-        <div className="flex items-center justify-center space-x-3">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#00ABE4]"></div>
-          <span className="text-[#00ABE4] font-semibold">Submitting...</span>
-        </div>
-      ) : (
-        <>
-          <button
-            disabled={!locked}
-            onClick={handleSubmitClick}
-            className={`px-8 py-3 rounded-md text-white font-semibold text-lg transition-colors ${
-              locked ? 'bg-[#00ABE4] hover:bg-[#0093c4]' : 'bg-gray-300 cursor-not-allowed'
-            }`}
-          >
-            {locked ? 'Submit' : 'Complete All Responses to Submit'}
-          </button>
-          {!locked && <p className="text-sm text-red-500 mt-2">Please answer all questions and lock your responses before submitting.</p>}
-        </>
-      )}
-      <ConfirmationModal
-        isOpen={showConfirmation}
-        onClose={handleCloseConfirmation}
-        onConfirm={handleConfirmSubmit}
-        title="Confirm Submission"
-        message="Confirm your answers and proceed to submit. Once submitted, you cannot make any changes."
-      />
-    </div>
-  );
-};
 
 const Tasks = () => {
-  const { serialNumber } = useParams();
-  const navigate = useNavigate();
-  const annotator = 'Ibrahim';
-  const filteredTasks = allTasks.filter(t => t.annotator === annotator);
-  const [answers, setAnswers] = useState({});
-  const [locked, setLocked] = useState(false);
+  const [selectedTool, setSelectedTool] = useState('polygon');
+  const [brushSize, setBrushSize] = useState(10);
+  const [opacity, setOpacity] = useState(50);
+  const [contrast, setContrast] = useState(50);
+  const [zoom, setZoom] = useState(100);
+  const [noAdjustmentNeeded, setNoAdjustmentNeeded] = useState(false);
+  const [selectedPII, setSelectedPII] = useState('no-pii');
   const [showGuide, setShowGuide] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [labelsVisible, setLabelsVisible] = useState(true);
   const [time, setTime] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  
+  const canvasRef = useRef(null);
+  const imageRef = useRef(null);
+  
+  const tasks = [
+    {
+      serialNumber: "0001",
+      productType: "TV",
+      productName: "Samsung Neo QLED 4K TV",
+      imageUrl: "https://images.unsplash.com/photo-1593784991095-a205069470b6?w=400&h=300&fit=crop",
+      category: "Electronics",
+      annotations: 1,
+      annotator: "Agus",
+      assignBy: "John",
+      date: "2025-07-15",
+      maskId: "mask_001_tv_samsung"
+    },
+  ];
+  
+  const productData = tasks[0];
 
-  const currentIndex = filteredTasks.findIndex(t => t.serialNumber === serialNumber);
-  const task = filteredTasks[currentIndex];
+  const tools = [
+    { id: 'polygon', name: 'Polygon', icon: Square, shortcut: 'P' },
+    { id: 'brush', name: 'Brush', icon: Paintbrush2, shortcut: 'B' },
+    { id: 'eraser', name: 'Eraser', icon: Eraser, shortcut: 'E' },
+    { id: 'pan', name: 'Pan', icon: Move, shortcut: 'H' }
+  ];
 
-  const goToTask = (index) => {
-    if (index >= 0 && index < filteredTasks.length) {
-      setTime(0); // Reset timer on task change
-      navigate(`/tasks/${filteredTasks[index].serialNumber}`);
-    }
+  const shortcuts = [
+    { key: 'B', action: 'Brush Tool' },
+    { key: 'E', action: 'Eraser Tool' },
+    { key: 'P', action: 'Polygon Tool' },
+    { key: 'H', action: 'Pan Tool' },
+    { key: 'Z', action: 'Zoom In' },
+    { key: 'O', action: 'Zoom Out' },
+    { key: 'Space', action: 'Pause/Resume Timer' },
+    { key: '1-9', action: 'Brush Opacity (10%-90%)' },
+    { key: 'Shift+Enter', action: 'Submit' },
+    { key: 'Ctrl+S', action: 'Settings' },
+    { key: 'Ctrl+H', action: 'Toggle Labels' }
+  ];
+
+  // Timer effect - only runs when not paused
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!isPaused) {
+        setTime(prev => prev + 1);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isPaused]);
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // Prevent spacebar from scrolling the page
+      if (e.key === ' ') {
+        e.preventDefault();
+        toggleTimer();
+        return;
+      }
+      
+      // Handle Ctrl combinations
+      if (e.ctrlKey) {
+        if (e.key === 's') {
+          e.preventDefault();
+          setShowSettings(true);
+          return;
+        }
+        if (e.key === 'h') {
+          e.preventDefault();
+          setLabelsVisible(prev => !prev);
+          return;
+        }
+      }
+      
+      switch(e.key.toLowerCase()) {
+        case 'b':
+          setSelectedTool('brush');
+          break;
+        case 'e':
+          setSelectedTool('eraser');
+          break;
+        case 'p':
+          setSelectedTool('polygon');
+          break;
+        case 'h':
+          setSelectedTool('pan');
+          break;
+        case 'z':
+          setZoom(prev => Math.min(prev + 25, 400));
+          break;
+        case 'o':
+          setZoom(prev => Math.max(prev - 25, 25));
+          break;
+        default:
+          if (e.key >= '1' && e.key <= '9') {
+            setOpacity(parseInt(e.key) * 10);
+          }
+          break;
+      }
+      
+      if (e.shiftKey && e.key === 'Enter') {
+        handleSubmit();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
+  const toggleTimer = () => {
+    setIsPaused(prev => !prev);
   };
 
   const handleSubmit = () => {
-    console.log('Annotation submitted successfully with answers:', answers);
-    setAnswers({});
-    setLocked(false);
+    alert('Task submitted successfully!');
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => setTime(prev => prev + 1), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (!serialNumber && filteredTasks.length > 0) {
-      navigate(`/tasks/${filteredTasks[0].serialNumber}`);
+  const handleDeclineTask = () => {
+    if (window.confirm('Are you sure you want to decline this task? Use only for blank images.')) {
+      alert('Task declined');
     }
-  }, [serialNumber, filteredTasks]);
+  };
 
-  if (!task) {
-    return (
-      <div className="bg-[#E9F1FA] min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Task Not Found</h1>
-          <p className="text-gray-600">No tasks available for this annotator.</p>
-        </div>
-      </div>
-    );
-  }
+  const handleReleaseTask = () => {
+    if (window.confirm('Are you sure you want to release this task?')) {
+      alert('Task released');
+    }
+  };
+
+  const handleStopAndResume = () => {
+    if (window.confirm('Are you sure you want to pause your work? You can resume later.')) {
+      setIsPaused(true);
+      alert('Work paused. You can resume later by clicking the play button.');
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+  };
+
+  const fitToScreen = () => {
+    setZoom(100);
+  };
+
+  const themeClasses = darkMode ? 'bg-gray-900 text-white' : 'bg-[#E9F1FA] text-black';
+  const panelClasses = darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300';
+  const buttonClasses = darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200';
 
   return (
-    <div className="bg-[#E9F1FA] min-h-screen">
-      <Navbar active={true} />
+    <div className={`min-h-screen ${themeClasses} relative`}>
+      <Navbar active={false} />
       <div className="p-6 space-y-6">
-        <InfoPanel
-          question={task.question.text}
-          category={task.question.category}
-          onShowInstructions={() => setShowGuide(true)}
-          onPrev={() => goToTask(currentIndex - 1)}
-          onNext={() => goToTask(currentIndex + 1)}
-          disablePrev={currentIndex <= 0}
-          disableNext={currentIndex >= filteredTasks.length - 1}
-          time={time}
-        />
-        <div className="grid grid-cols-12 gap-5 min-h-[600px]">
-          <div className="col-span-12 lg:col-span-7">
-            <div className="h-full bg-white rounded p-4 shadow overflow-y-auto">
-              <QuestionsPanel answers={answers} setAnswers={setAnswers} locked={locked} setLocked={setLocked} />
+        {/* Timer and Instructions Header */}
+        <div className={`${panelClasses} p-2 rounded shadow border`}>
+          <div className="flex items-center justify-between">
+            <div className={`${panelClasses} px-2 py-1 rounded shadow text-center border`}>
+              <div className="text-xs font-medium text-gray-600">Timer</div>
+              <div className={`text-sm font-bold ${isPaused ? 'text-red-600' : (darkMode ? 'text-gray-300' : 'text-gray-700')}`}>
+                {formatTime(time)}
+              </div>
+              <button
+                onClick={toggleTimer}
+                className={`mt-0.5 px-1.5 py-0.5 text-xs rounded ${
+                  isPaused 
+                    ? 'bg-green-500 hover:bg-green-600 text-white' 
+                    : 'bg-red-500 hover:bg-red-600 text-white'
+                }`}
+                title="Toggle Timer (Space)"
+              >
+                {isPaused ? <Play size={8} /> : <Pause size={8} />}
+              </button>
             </div>
-          </div>
-          <div className="col-span-12 lg:col-span-5">
-            <div className="h-full bg-white rounded p-4 shadow">
-              <SearchEngine query={task.question.text} />
+            <div className="flex-1 text-center px-4">
+              <h1 className={`text-base font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                Product Type: {productData.productType}
+              </h1>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-gray-600">Task ID</div>
+              <div className={`font-mono text-sm ${darkMode ? 'text-gray-300' : 'text-black'}`}>
+                {tasks[0].serialNumber}
+              </div>
             </div>
           </div>
         </div>
-        <SubmitSection locked={locked} onSubmit={handleSubmit} />
+
+        <div className="flex min-h-[600px] gap-4">
+          {/* Left Toolbar */}
+          <div className={`w-20 ${panelClasses} border rounded shadow flex flex-col items-center py-4 space-y-4`}>
+            <h3 className="text-xs font-bold text-center mb-2">Tools</h3>
+            
+            {tools.map((tool) => (
+              <button
+                key={tool.id}
+                onClick={() => setSelectedTool(tool.id)}
+                className={`p-3 rounded-lg transition-colors ${
+                  selectedTool === tool.id 
+                    ? 'bg-blue-500 text-white' 
+                    : buttonClasses
+                }`}
+                title={`${tool.name} (${tool.shortcut})`}
+              >
+                <tool.icon size={20} />
+              </button>
+            ))}
+            
+            <div className="border-t pt-4 space-y-3 w-full flex flex-col items-center border-gray-300">
+              <button
+                onClick={() => setZoom(prev => Math.min(prev + 25, 400))}
+                className={`p-2 rounded ${buttonClasses}`}
+                title="Zoom In (Z)"
+              >
+                <ZoomIn size={18} />
+              </button>
+              
+              <button
+                onClick={() => setZoom(prev => Math.max(prev - 25, 25))}
+                className={`p-2 rounded ${buttonClasses}`}
+                title="Zoom Out (O)"
+              >
+                <ZoomOut size={18} />
+              </button>
+              
+              <button
+                onClick={fitToScreen}
+                className={`p-2 rounded ${buttonClasses}`}
+                title="Fit to Screen"
+              >
+                <RotateCcw size={18} />
+              </button>
+
+              <button
+                onClick={() => setShowSettings(true)}
+                className={`p-2 rounded ${buttonClasses}`}
+                title="Settings (Ctrl+S)"
+              >
+                <Settings size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Center Image Area */}
+          <div className="flex-1 flex flex-col">
+            {/* Top Controls */}
+            <div className={`h-12 ${panelClasses} border rounded-t shadow flex items-center px-4 space-x-4`}>
+              <div className="flex items-center space-x-2">
+                <Contrast size={16} />
+                <span className="text-sm">Contrast:</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={contrast}
+                  onChange={(e) => setContrast(e.target.value)}
+                  className="w-20"
+                />
+                <span className="text-sm w-8">{contrast}%</span>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Layers size={16} />
+                <span className="text-sm">Opacity:</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={opacity}
+                  onChange={(e) => setOpacity(e.target.value)}
+                  className="w-20"
+                />
+                <span className="text-sm w-8">{opacity}%</span>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <span className="text-sm">Zoom:</span>
+                <span className="text-sm font-mono w-12">{zoom}%</span>
+              </div>
+
+              <button
+                onClick={() => alert('Preview mode activated')}
+                className="flex items-center space-x-2 px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                title="Preview"
+              >
+                <Eye size={16} />
+                <span>Preview</span>
+              </button>
+            </div>
+
+            {/* Main Canvas Area */}
+            <div className={`flex-1 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} border border-t-0 rounded-b shadow relative overflow-hidden`}>
+              <div 
+                className="w-full h-full flex items-center justify-center"
+                style={{ transform: `scale(${zoom / 100})` }}
+              >
+                <div className="relative">
+                  <img 
+                    src={productData.imageUrl} 
+                    alt={productData.productName} 
+                    className="w-96 h-64 object-cover rounded-lg"
+                    style={{ filter: `contrast(${contrast}%)` }}
+                  />
+                  
+                  {/* Canvas for annotations */}
+                  <canvas
+                    ref={canvasRef}
+                    width="384"
+                    height="256"
+                    className="absolute top-0 left-0 cursor-crosshair"
+                    style={{ opacity: opacity / 100 }}
+                  />
+
+                  {/* Sample annotation labels - only visible when labelsVisible is true */}
+                  {labelsVisible && (
+                    <>
+                      <div className="absolute top-4 left-4 bg-blue-500 text-white px-2 py-1 rounded text-xs">
+                        Product
+                      </div>
+                      <div className="absolute bottom-4 right-4 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                        Accessory
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Panel */}
+          <div className={`w-80 ${panelClasses} border rounded shadow flex flex-col relative`}>
+            {/* Header Controls */}
+            <div className="p-4 border-b space-y-4">
+              <div className="flex space-x-2 flex-wrap gap-2 relative">
+                <button
+                  onClick={() => setShowGuide(!showGuide)}
+                  className="flex items-center space-x-2 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                  title="View Instructions"
+                >
+                  <Info size={16} />
+                  <span>Instructions</span>
+                </button>
+                
+                <button
+                  onClick={() => setShowShortcuts(!showShortcuts)}
+                  className="flex items-center space-x-2 px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm"
+                  title="View Shortcuts"
+                >
+                  <Keyboard size={16} />
+                  <span>Shortcuts</span>
+                </button>
+                
+                {/* Instructions Popup */}
+                {showGuide && (
+                  <div className={`absolute top-full left-0 mt-2 w-70 max-h-80 ${panelClasses} border rounded-lg shadow-2xl z-50 overflow-hidden`}>
+                    <div className="flex justify-between items-center p-3 border-b">
+                      <h3 className="font-bold text-sm">Instructions</h3>
+                      <button onClick={() => setShowGuide(false)} className="text-gray-500 hover:text-gray-700">
+                        <X size={16} />
+                      </button>
+                    </div>
+                    <div className="p-3 overflow-y-auto max-h-64 text-xs">
+                      <div className="space-y-2">
+                        <h4 className="font-semibold">Overview</h4>
+                        <p>Segment products and accessories from images. Create masks to separate relevant parts from background.</p>
+                        
+                        <h4 className="font-semibold">Do's</h4>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>Mask every product and box items</li>
+                          <li>Zoom in to 200% to check edges</li>
+                          <li>Make edges clean and smooth</li>
+                          <li>Include essential text</li>
+                        </ul>
+                        
+                        <h4 className="font-semibold">Don'ts</h4>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>Don't mask reflections or shadows</li>
+                          <li>Don't leave rough edges</li>
+                          <li>Don't include floating text</li>
+                          <li>Don't mask background items</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Shortcuts Popup */}
+                {showShortcuts && (
+                  <div className={`absolute top-full right-0 mt-2 w-72 max-h-80 ${panelClasses} border rounded-lg shadow-2xl z-50 overflow-hidden`}>
+                    <div className="flex justify-between items-center p-3 border-b">
+                      <h3 className="font-bold text-sm">Keyboard Shortcuts</h3>
+                      <button onClick={() => setShowShortcuts(false)} className="text-gray-500 hover:text-gray-700">
+                        <X size={16} />
+                      </button>
+                    </div>
+                    <div className="p-3 overflow-y-auto max-h-64">
+                      <div className="space-y-2">
+                        {shortcuts.map((shortcut, index) => (
+                          <div key={index} className="flex justify-between items-center text-xs">
+                            <span>{shortcut.action}</span>
+                            <span className={`px-2 py-1 rounded font-mono text-xs ${
+                              darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
+                            }`}>
+                              {shortcut.key}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Reference Info Panel */}
+            <div className="p-4 border-b">
+              <h3 className="font-semibold mb-3">Reference Info Panel</h3>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="font-medium">Product Type:</span>
+                  <span className="ml-2 font-bold text-blue-600">{productData.productType}</span>
+                </div>
+                <div>
+                  <span className="font-medium">Image ID:</span>
+                  <div className="text-xs text-gray-500 mt-1 break-all">{productData.productName}</div>
+                </div>
+                <div>
+                  <span className="font-medium">Mask ID:</span>
+                  <div className="text-xs text-gray-500 mt-1 break-all">{productData.maskId}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* PII Selection */}
+            <div className="p-4 border-b">
+              <h3 className="font-semibold mb-3">PII Classification</h3>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="pii"
+                    value="no-pii"
+                    checked={selectedPII === 'no-pii'}
+                    onChange={(e) => setSelectedPII(e.target.value)}
+                  />
+                  <span className="text-sm">No PII</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="pii"
+                    value="has-pii"
+                    checked={selectedPII === 'has-pii'}
+                    onChange={(e) => setSelectedPII(e.target.value)}
+                  />
+                  <span className="text-sm">Contains PII</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Tool Settings */}
+            {selectedTool === 'brush' && (
+              <div className="p-4 border-b">
+                <h3 className="font-semibold mb-3">Brush Settings</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Brush Size</label>
+                    <input
+                      type="range"
+                      min="1"
+                      max="50"
+                      value={brushSize}
+                      onChange={(e) => setBrushSize(e.target.value)}
+                      className="w-full"
+                    />
+                    <span className="text-sm text-gray-500">{brushSize}px</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Bottom Controls */}
+            <div className="p-4 space-y-4 mt-auto">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={noAdjustmentNeeded}
+                  onChange={(e) => setNoAdjustmentNeeded(e.target.checked)}
+                />
+                <span className="text-sm">No adjustment needed</span>
+              </label>
+
+              <div className="grid grid-cols-1 gap-2">
+                <button
+                  onClick={handleSubmit}
+                  className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex items-center justify-center space-x-2"
+                  title="Submit (Shift+Enter)"
+                >
+                  <Check size={16} />
+                  <span>Submit</span>
+                </button>
+                
+                <button
+                  onClick={handleDeclineTask}
+                  className="w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 flex items-center justify-center space-x-2"
+                >
+                  <X size={16} />
+                  <span>Decline Task</span>
+                </button>
+
+                <button
+                  onClick={handleReleaseTask}
+                  className="w-full px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 flex items-center justify-center space-x-2"
+                >
+                  <RotateCcw size={16} />
+                  <span>Release Task</span>
+                </button>
+
+                <button
+                  onClick={handleStopAndResume}
+                  className="w-full px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 flex items-center justify-center space-x-2"
+                >
+                  <Pause size={16} />
+                  <span>Stop and Resume Later</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      {showGuide && <InstructionGuide onClose={() => setShowGuide(false)} />}
+      
+      {/* Settings Modal - Kept as full modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className={`${panelClasses} p-6 rounded-lg shadow-xl max-w-md w-full`}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Settings</h2>
+              <button onClick={() => setShowSettings(false)} className="text-gray-500 hover:text-gray-700">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Theme</span>
+                <button
+                  onClick={() => setDarkMode(prev => !prev)}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded ${
+                    darkMode ? 'bg-gray-600 text-white' : 'bg-gray-200 text-black'
+                  }`}
+                >
+                  {darkMode ? <Moon size={16} /> : <Sun size={16} />}
+                  <span>{darkMode ? 'Dark' : 'Light'}</span>
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Show Labels</span>
+                <button
+                  onClick={() => setLabelsVisible(prev => !prev)}
+                  className={`px-3 py-2 rounded ${
+                    labelsVisible ? 'bg-green-500 text-white' : 'bg-gray-300 text-black'
+                  }`}
+                >
+                  {labelsVisible ? 'Visible' : 'Hidden'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
 export default Tasks;

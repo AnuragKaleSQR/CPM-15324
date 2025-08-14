@@ -1,4 +1,4 @@
-import { Activity, CircleUserRound, LogOut } from 'lucide-react';
+import { CircleUserRound, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../assets/Logo.png';
 const Navbar = () => {
@@ -22,7 +22,7 @@ const Navbar = () => {
         </div> */}
         <div className="flex items-center space-x-2">
           <CircleUserRound className='text-[#FFCE70]'/>
-          <span className="text-sm font-semibold text-gray-300">Ibrahim</span>
+          <span className="text-sm font-semibold text-gray-300">John</span>
           <span className="text-sm font-semibold text-gray-300">Annotator ID</span>
         </div>
         <LogOut className="cursor-pointer text-[#FFCE70] hover:text-[#00FFB3]" onClick={() => window.location.href = '/'} />

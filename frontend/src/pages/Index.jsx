@@ -3,7 +3,120 @@ import { FaChevronDown, FaChevronUp, FaSearch } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import StatusFilter from '../components/StatusFilter';
-import tasks from '../data/tasks.json';
+
+// Updated tasks data with proper structure, dates adjusted to 2025-07, assignBy added, question.text removed, category made top-level
+const tasks = [
+  {
+    "serialNumber": "0001",
+    "productType": "TV",
+    "productName": "Samsung Neo QLED 4K TV",
+    "imageUrl": "https://images.unsplash.com/photo-1593784991095-a205069470b6?w=400&h=300&fit=crop",
+    "category": "Electronics",
+    "annotations": 1,
+    "annotator": "Agus",
+    "assignBy": "John",
+    "date": "2025-07-15"
+  },
+  {
+    "serialNumber": "0002",
+    "productType": "Remote",
+    "productName": "Samsung Universal IR Remote (VG-TM1240AN)",
+    "imageUrl": "https://images.unsplash.com/photo-1558618644-fcd25c85cd64?w=400&h=300&fit=crop",
+    "category": "Accessories",
+    "annotations": 2,
+    "annotator": "Ibrahim",
+    "assignBy": "John",
+    "date": "2025-07-16"
+  },
+  {
+    "serialNumber": "0003",
+    "productType": "Mobile",
+    "productName": "Flagship Smartphones (varied models)",
+    "imageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop",
+    "category": "Mobile Devices",
+    "annotations": 0,
+    "annotator": "Agus",
+    "assignBy": "John",
+    "date": "2025-07-17"
+  },
+  {
+    "serialNumber": "0004",
+    "productType": "Laptop",
+    "productName": "Generic Laptop (e.g., Dell XPS-style)",
+    "imageUrl": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=300&fit=crop",
+    "category": "Computers",
+    "annotations": 1,
+    "annotator": "Ibrahim",
+    "assignBy": "John",
+    "date": "2025-07-18"
+  },
+  {
+    "serialNumber": "0005",
+    "productType": "TV",
+    "productName": "Samsung 55\" Crystal UHD TV",
+    "imageUrl": "https://images.unsplash.com/photo-1593784991095-a205069470b6?w=400&h=300&fit=crop",
+    "category": "Electronics",
+    "annotations": 2,
+    "annotator": "Agus",
+    "assignBy": "John",
+    "date": "2025-07-19"
+  },
+  {
+    "serialNumber": "0006",
+    "productType": "Mobile",
+    "productName": "Samsung Galaxy S25 Ultra",
+    "imageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop",
+    "category": "Mobile Devices",
+    "annotations": 0,
+    "annotator": "Ibrahim",
+    "assignBy": "John",
+    "date": "2025-07-20"
+  },
+  {
+    "serialNumber": "0007",
+    "productType": "Remote",
+    "productName": "GE 4-Device Universal Remote",
+    "imageUrl": "https://images.unsplash.com/photo-1558618644-fcd25c85cd64?w=400&h=300&fit=crop",
+    "category": "Accessories",
+    "annotations": 1,
+    "annotator": "Agus",
+    "assignBy": "John",
+    "date": "2025-07-21"
+  },
+  {
+    "serialNumber": "0008",
+    "productType": "Laptop",
+    "productName": "Ultra-slim Productivity Laptop",
+    "imageUrl": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=300&fit=crop",
+    "category": "Computers",
+    "annotations": 2,
+    "annotator": "Ibrahim",
+    "assignBy": "John",
+    "date": "2025-07-22"
+  },
+  {
+    "serialNumber": "0009",
+    "productType": "TV",
+    "productName": "Samsung 60\" Full HD Smart TV",
+    "imageUrl": "https://images.unsplash.com/photo-1593784991095-a205069470b6?w=400&h=300&fit=crop",
+    "category": "Electronics",
+    "annotations": 1,
+    "annotator": "Agus",
+    "assignBy": "John",
+    "date": "2025-07-23"
+  },
+  {
+    "serialNumber": "0010",
+    "productType": "Mobile",
+    "productName": "Next-gen Foldable Phone",
+    "imageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop",
+    "category": "Mobile Devices",
+    "annotations": 0,
+    "annotator": "Ibrahim",
+    "assignBy": "John",
+    "date": "2025-07-24"
+  }
+];
 
 const Index = () => {
   const navigate = useNavigate();
@@ -18,6 +131,7 @@ const Index = () => {
   const totalTasks = ibrahimTasks.length;
   const completedTasks = ibrahimTasks.filter(t => t.annotations === 2).length;
   const tasksLeft = ibrahimTasks.filter(t => t.annotations !== 2).length;
+  const revertedTasks = ibrahimTasks.filter(t => t.annotations === 1).length;
 
   // Card colors
   const cardColors = [
@@ -31,27 +145,35 @@ const Index = () => {
     setFilteredTasks(ibrahimTasks);
   }, []);
 
-  // Search functionality
+  // Combined filter for status and search
   useEffect(() => {
-    if (!searchTerm) {
-      setFilteredTasks(ibrahimTasks);
-      return;
+    let filtered = ibrahimTasks;
+
+    if (statusFilter === 'Completed') {
+      filtered = filtered.filter(t => t.annotations === 2);
+    } else if (statusFilter === 'Partial') {
+      filtered = filtered.filter(t => t.annotations === 1);
+    } else if (statusFilter === 'Not Started') {
+      filtered = filtered.filter(t => t.annotations === 0);
     }
 
-    const term = searchTerm.toLowerCase();
-    const results = ibrahimTasks.filter(task => {
-      return (
-        String(task.serialNumber).toLowerCase().includes(term) ||
-        task.question.text.toLowerCase().includes(term) ||
-        String(task.annotations).toLowerCase().includes(term) ||
-        task.question.category.toLowerCase().includes(term) ||
-        task.annotator.toLowerCase().includes(term) ||
-        'John'.toLowerCase().includes(term) ||
-        '2025-07-23'.toLowerCase().includes(term)
-      );
-    });
-    setFilteredTasks(results);
-  }, [searchTerm]);
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(task => {
+        return (
+          String(task.serialNumber).toLowerCase().includes(term) ||
+          task.productName.toLowerCase().includes(term) ||
+          String(task.annotations).toLowerCase().includes(term) ||
+          task.category.toLowerCase().includes(term) ||
+          task.annotator.toLowerCase().includes(term) ||
+          task.assignBy.toLowerCase().includes(term) ||
+          task.date.toLowerCase().includes(term)
+        );
+      });
+    }
+
+    setFilteredTasks(filtered);
+  }, [searchTerm, statusFilter]);
 
   // Sorting functionality
   const requestSort = (key) => {
@@ -66,48 +188,30 @@ const Index = () => {
     const sortableTasks = [...filteredTasks];
     if (sortConfig.key) {
       sortableTasks.sort((a, b) => {
-        let aValue, bValue;
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
 
-        if (sortConfig.key === 'question') {
-          aValue = a.question.text;
-          bValue = b.question.text;
-        } else if (sortConfig.key === 'annotator') {
-          aValue = a.annotator;
-          bValue = b.annotator;
-        } else if (sortConfig.key === 'assignBy') {
-          aValue = 'John';
-          bValue = 'John';
+        if (sortConfig.key === 'serialNumber') {
+          aValue = parseInt(a.serialNumber);
+          bValue = parseInt(b.serialNumber);
         } else if (sortConfig.key === 'date') {
-          aValue = '2025-07-23';
-          bValue = '2025-07-23';
-        } else if (sortConfig.key === 'category') {
-          aValue = a.question.category;
-          bValue = b.question.category;
-        } else {
-          aValue = a[sortConfig.key];
-          bValue = b[sortConfig.key];
+          aValue = new Date(a.date);
+          bValue = new Date(b.date);
         }
 
-        if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
-        return 0;
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortConfig.direction === 'ascending'
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        } else {
+          return sortConfig.direction === 'ascending'
+            ? aValue - bValue
+            : bValue - aValue;
+        }
       });
     }
     return sortableTasks;
   };
-
-  // Filter logic - now working with Ibrahim's tasks only
-  useEffect(() => {
-    if (statusFilter === 'All') {
-      setFilteredTasks(ibrahimTasks);
-    } else if (statusFilter === 'Completed') {
-      setFilteredTasks(ibrahimTasks.filter(t => t.annotations === 2));
-    } else if (statusFilter === 'Partial') {
-      setFilteredTasks(ibrahimTasks.filter(t => t.annotations === 1));
-    } else if (statusFilter === 'Not Started') {
-      setFilteredTasks(ibrahimTasks.filter(t => t.annotations === 0));
-    }
-  }, [statusFilter]);
 
   const sortedTasks = getSortedTasks();
 
@@ -128,6 +232,8 @@ const Index = () => {
 
         {/* Table Section */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+         
+
           <div className="flex flex-col md:flex-row justify-between items-center p-4 border-b">
             <StatusFilter value={statusFilter} onChange={setStatusFilter} />
             <div className="relative w-full md:w-64">
@@ -150,17 +256,17 @@ const Index = () => {
                 <tr>
                   {[
                     { key: 'serialNumber', label: 'Task ID' },
-                    { key: 'question', label: 'Question' },
+                    { key: 'image', label: 'Image' },
                     { key: 'annotations', label: 'Status' },
                     { key: 'category', label: 'Category' },
-                    { key: 'annotator', label: 'Annotator' },
-                    { key: 'assignBy', label: 'Assign By' },
-                    { key: 'date', label: 'Date' }
+                    // { key: 'annotator', label: 'Annotator' },
+                    // { key: 'assignBy', label: 'Assign By' },
+                    { key: 'date', label: 'Assign Date' }
                   ].map((header) => (
                     <th
                       key={header.key}
-                      className="px-6 py-4 text-left font-semibold cursor-pointer"
-                      onClick={() => requestSort(header.key)}
+                      className={`px-6 py-4 text-left font-semibold ${header.key !== 'image' ? 'cursor-pointer' : ''}`}
+                      onClick={header.key !== 'image' ? () => requestSort(header.key) : undefined}
                     >
                       <div className="flex items-center">
                         {header.label}
@@ -182,7 +288,16 @@ const Index = () => {
                     onClick={() => navigate(`/tasks/${t.serialNumber}`)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{t.serialNumber}</td>
-                    <td className="px-6 py-4 max-w-xs">{t.question.text}</td>
+                    <td className="px-6 py-4">
+                      <img
+                        src={t.imageUrl}
+                        alt={t.productName}
+                        className="w-16 h-16 object-cover rounded"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/64x64?text=No+Image';
+                        }}
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       {t.annotations === 0 && (
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
@@ -202,12 +317,12 @@ const Index = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md">
-                        {t.question.category}
+                        {t.category}
                       </span>
                     </td>
-                    <td className="px-6 py-4">{t.annotator}</td>
-                    <td className="px-6 py-4">John</td>
-                    <td className="px-6 py-4">2025-07-23</td>
+                    {/* <td className="px-6 py-4">{t.annotator}</td> */}
+                    {/* <td className="px-6 py-4">{t.assignBy}</td> */}
+                    <td className="px-6 py-4">{t.date}</td>
                   </tr>
                 ))}
               </tbody>
